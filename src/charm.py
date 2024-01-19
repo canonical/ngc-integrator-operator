@@ -10,14 +10,15 @@ from pathlib import Path
 
 import ops
 import yaml
-from charmed_kubeflow_chisme.components import (
-    CharmReconciler, LeadershipGateComponent)
+from charmed_kubeflow_chisme.components import CharmReconciler, LeadershipGateComponent
+
 from components.manifests_relation_component import KubernetesManifestRelationBroadcasterComponent
 
 logger = logging.getLogger(__name__)
 
-PODDEFAULT_FILE = "src/templates/podefault.yaml"
+PODDEFAULT_FILE = "src/templates/poddefault.yaml"
 PODDEFAULTS_RELATION = "pod-defaults"
+
 
 class NgcIntegratorCharm(ops.CharmBase):
     """A Juju charm for NGC Containers integration with Kubeflow."""
@@ -37,15 +38,14 @@ class NgcIntegratorCharm(ops.CharmBase):
         )
 
         self.manifests_broadcaster = self.charm_reconciler.add(
-            component = KubernetesManifestRelationBroadcasterComponent(
+            component=KubernetesManifestRelationBroadcasterComponent(
                 charm=self,
                 name="manifests-relation-broadcaster",
                 relation_name=PODDEFAULTS_RELATION,
-                manifests_paths=[PODDEFAULT_FILE]
+                manifests_paths=[PODDEFAULT_FILE],
             ),
-            depends_on=[self.leadership_gate]
+            depends_on=[self.leadership_gate],
         )
-
 
         self.charm_reconciler.install_default_event_handlers()
 

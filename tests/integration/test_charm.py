@@ -3,15 +3,15 @@
 # See LICENSE file for licensing details.
 
 import logging
-from pathlib import Path
 import time
+from pathlib import Path
 
-import pytest
 import lightkube
+import pytest
 import yaml
-from pytest_operator.plugin import OpsTest
-from lightkube.generic_resource import create_namespaced_resource
 from lightkube import codecs
+from lightkube.generic_resource import create_namespaced_resource
+from pytest_operator.plugin import OpsTest
 
 logger = logging.getLogger(__name__)
 

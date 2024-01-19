@@ -1,21 +1,31 @@
-import yaml
 from pathlib import Path
 from typing import List
+
+import yaml
 from charmed_kubeflow_chisme.components.component import Component
-from charms.kubernetes_manifests.v0.kubernetes_manifests import KubernetesManifest, KubernetesManifestsRequirer
-from ops import ActiveStatus, BlockedStatus, CharmBase, StatusBase
 from charmed_kubeflow_chisme.exceptions import ErrorWithStatus
+from charms.kubernetes_manifests.v0.kubernetes_manifests import (
+    KubernetesManifest,
+    KubernetesManifestsRequirer,
+)
+from ops import ActiveStatus, BlockedStatus, CharmBase, StatusBase
+
 
 class KubernetesManifestRelationBroadcasterComponent(Component):
     """
     A Component that wraps the requirer side of the resource_dispatcher charm library.
     """
-    def __init__(self, charm: CharmBase, name: str, relation_name: str, manifests_paths: List[Path]):
+
+    def __init__(
+        self, charm: CharmBase, name: str, relation_name: str, manifests_paths: List[Path]
+    ):
         super().__init__(charm, name)
         self.relation_name = relation_name
         self.manifests_paths = manifests_paths
 
-        self.kubernetes_manifests_requirer = KubernetesManifestsRequirer(charm, relation_name, self._get_manifests_items())
+        self.kubernetes_manifests_requirer = KubernetesManifestsRequirer(
+            charm, relation_name, self._get_manifests_items()
+        )
 
     def _get_manifests_items(self) -> List[KubernetesManifest]:
         """
@@ -32,7 +42,6 @@ class KubernetesManifestRelationBroadcasterComponent(Component):
             except (FileNotFoundError, yaml.YAMLError) as error:
                 raise ErrorWithStatus(error, BlockedStatus)
         return manifests_items
-            
 
     def get_status(self) -> StatusBase:
         """Returns the status of this relation.

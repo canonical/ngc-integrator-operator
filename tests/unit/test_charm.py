@@ -5,20 +5,25 @@ import json
 from pathlib import Path
 from typing import List
 from unittest.mock import MagicMock, patch
-from ops.testing import Harness
-from ops.model import ActiveStatus, BlockedStatus
+
+import pytest
 import yaml
-from charm import NgcIntegratorCharm, PODDEFAULTS_RELATION, PODDEFAULT_FILE
+from ops.model import ActiveStatus, BlockedStatus
+from ops.testing import Harness
+
+from charm import PODDEFAULT_FILE, PODDEFAULTS_RELATION, NgcIntegratorCharm
 from components.manifests_relation_component import KubernetesManifestRelationBroadcasterComponent
 from lib.charms.kubernetes_manifests.v0.kubernetes_manifests import (
     KUBERNETES_MANIFESTS_FIELD,
-    KubernetesManifest)
-import pytest
+    KubernetesManifest,
+)
+
 
 @pytest.fixture
 def harness() -> Harness:
     harness = Harness(NgcIntegratorCharm)
     return harness
+
 
 def test_not_leader(harness):
     """Test when we are not the leader."""
@@ -40,17 +45,13 @@ def test_kubernetes_manifest_relation_data(harness):
     harness.charm.leadership_gate.get_status = MagicMock(return_value=ActiveStatus())
 
     # Act
-    relation_id = harness.add_relation(
-        relation_name=PODDEFAULTS_RELATION, remote_app=other_app
-    )
+    relation_id = harness.add_relation(relation_name=PODDEFAULTS_RELATION, remote_app=other_app)
 
     # Assert
     actual_manifests = get_manifests_from_relation(harness, relation_id, harness.model.app)
 
     assert actual_manifests == [yaml.safe_load(Path(PODDEFAULT_FILE).read_text())]
     assert isinstance(harness.charm.model.unit.status, ActiveStatus)
-
-
 
 
 def get_manifests_from_relation(harness, relation_id, this_app) -> List[dict]:
