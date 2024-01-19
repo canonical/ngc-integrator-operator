@@ -31,4 +31,9 @@ Build the charm in this git repository using:
 charmcraft pack
 ```
 
+## Upgrading
+This charm follows the Charmed Kubeflow versioning with the channel ckf-1.x/<risk> for Kubeflow 1.x versions.
+On upgrades, the PodDefault yaml in `/src/templatest/poddefault.yaml` should be upgraded if needed to work with the corresponding Kubeflow Notebooks version.
+The entrypoint in the PodDefault, composed of the `command` and `args` values, is a jupyter lab command. A version of Kubeflow Notebook
+images contains a pinned version of jupyter, so the command might change with a change in the jupyter version.
 <!-- You may want to include any contribution/style guidelines in this document>
