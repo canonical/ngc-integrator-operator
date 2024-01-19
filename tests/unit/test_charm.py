@@ -4,19 +4,15 @@
 import json
 from pathlib import Path
 from typing import List
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 import yaml
-from ops.model import ActiveStatus, BlockedStatus
+from ops.model import ActiveStatus
 from ops.testing import Harness
 
 from charm import PODDEFAULT_FILE, PODDEFAULTS_RELATION, NgcIntegratorCharm
-from components.manifests_relation_component import KubernetesManifestRelationBroadcasterComponent
-from lib.charms.kubernetes_manifests.v0.kubernetes_manifests import (
-    KUBERNETES_MANIFESTS_FIELD,
-    KubernetesManifest,
-)
+from lib.charms.kubernetes_manifests.v0.kubernetes_manifests import KUBERNETES_MANIFESTS_FIELD
 
 
 @pytest.fixture

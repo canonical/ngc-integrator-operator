@@ -29,7 +29,8 @@ class KubernetesManifestRelationBroadcasterComponent(Component):
 
     def _get_manifests_items(self) -> List[KubernetesManifest]:
         """
-        Reads the Kubernetes manifests contents from the manifests_paths and creates a KubernetesManifest item for each manifest.
+        Reads the Kubernetes manifests contents from the manifests_paths
+        and creates a KubernetesManifest item for each manifest.
 
         Returns: List of KubernetesManifest.
         """

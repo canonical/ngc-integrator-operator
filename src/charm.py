@@ -4,12 +4,9 @@
 
 """Charm the application."""
 
-import json
 import logging
-from pathlib import Path
 
 import ops
-import yaml
 from charmed_kubeflow_chisme.components import CharmReconciler, LeadershipGateComponent
 
 from components.manifests_relation_component import KubernetesManifestRelationBroadcasterComponent
