@@ -59,10 +59,12 @@ def delete_all_from_yaml(yaml_text: str, lightkube_client: lightkube.Client = No
     for obj in codecs.load_all_yaml(yaml_text):
         lightkube_client.delete(type(obj), obj.metadata.name)
 
+
 @pytest.fixture(scope="session")
 def lightkube_client() -> lightkube.Client:
     client = lightkube.Client(field_manager=CHARM_NAME)
     return client
+
 
 def deploy_k8s_resources(template_files: str):
     lightkube_client = lightkube.Client(field_manager=CHARM_NAME)
@@ -71,6 +73,7 @@ def deploy_k8s_resources(template_files: str):
     )
     load_in_cluster_generic_resources(lightkube_client)
     k8s_resource_handler.apply()
+
 
 @pytest.fixture(scope="session")
 def namespace(lightkube_client: lightkube.Client):
