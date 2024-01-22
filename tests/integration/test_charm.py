@@ -10,8 +10,12 @@ from pathlib import Path
 import lightkube
 import pytest
 import yaml
+from charmed_kubeflow_chisme.kubernetes import KubernetesResourceHandler
 from lightkube import codecs
-from lightkube.generic_resource import create_namespaced_resource
+from lightkube.generic_resource import (
+    create_namespaced_resource,
+    load_in_cluster_generic_resources,
+)
 from pytest_operator.plugin import OpsTest
 
 logger = logging.getLogger(__name__)
@@ -21,9 +25,11 @@ CHARM_NAME = METADATA["name"]
 RESOURCE_DISPATCHER_CHARM_NAME = "resource-dispatcher"
 METACONTROLLER_CHARM_NAME = "metacontroller-operator"
 TESTING_LABELS = ["user.kubeflow.org/enabled"]
+PODDEFAULTS_CRD_TEMPLATE = "./tests/integration/crds/poddefaults.yaml"
 PODDEFAULT_FILE = yaml.safe_load(Path("./src/templates/poddefault.yaml").read_text())
 PODDEFAULT_NAME = PODDEFAULT_FILE["metadata"]["name"]
 NAMESPACE_FILE = "./tests/integration/namespace.yaml"
+
 
 PodDefault = create_namespaced_resource("kubeflow.org", "v1alpha1", "PodDefault", "poddefaults")
 
@@ -53,12 +59,18 @@ def delete_all_from_yaml(yaml_text: str, lightkube_client: lightkube.Client = No
     for obj in codecs.load_all_yaml(yaml_text):
         lightkube_client.delete(type(obj), obj.metadata.name)
 
-
 @pytest.fixture(scope="session")
 def lightkube_client() -> lightkube.Client:
     client = lightkube.Client(field_manager=CHARM_NAME)
     return client
 
+def deploy_k8s_resources(template_files: str):
+    lightkube_client = lightkube.Client(field_manager=CHARM_NAME)
+    k8s_resource_handler = KubernetesResourceHandler(
+        field_manager=CHARM_NAME, template_files=template_files, context={}
+    )
+    load_in_cluster_generic_resources(lightkube_client)
+    k8s_resource_handler.apply()
 
 @pytest.fixture(scope="session")
 def namespace(lightkube_client: lightkube.Client):
@@ -77,6 +89,8 @@ def namespace(lightkube_client: lightkube.Client):
 @pytest.mark.abort_on_fail
 async def test_build_and_deploy(ops_test: OpsTest):
     """Build the ngc-integrator charm and deploy it together with related charms."""
+
+    deploy_k8s_resources([PODDEFAULTS_CRD_TEMPLATE])
 
     # Build and deploy charm from local source folder
     built_charm_path = await ops_test.build_charm(".")
