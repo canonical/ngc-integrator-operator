@@ -25,7 +25,7 @@ spec:
   - "False"
   command:
   - /opt/nvidia/nvidia_entrypoint.sh
-  desc: Configure NVIDIA NGC JupyterLab Notebook
+  desc: Enable NVIDIA NGC JupyterLab Notebook
   selector:
     matchLabels:
-      ngc: "true"
+      enable-ngc-jupyterlab: "true"
