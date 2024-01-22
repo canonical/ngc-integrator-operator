@@ -3,6 +3,7 @@
 # See LICENSE file for licensing details.
 
 import logging
+import subprocess
 import time
 from pathlib import Path
 
@@ -105,18 +106,27 @@ async def test_build_and_deploy(ops_test: OpsTest):
         timeout=120,
     )
 
-    resources = {"oci-image": "charmedkubeflow/resource-dispatcher:1.0-22.04"}
+    # TODO: uncomment once https://github.com/canonical/resource-dispatcher/pull/42 is merged
+    #     await ops_test.model.deploy(
+    #     entity_url=RESOURCE_DISPATCHER_CHARM_NAME,
+    #     channel="latest/edge",
+    #     trust=True,
+    # )
 
-    await ops_test.model.deploy(
-        entity_url="./resource-dispatcher_ubuntu-20.04-amd64.charm",
-        application_name=RESOURCE_DISPATCHER_CHARM_NAME,
-        resources=resources,
-        trust=True,
-    )
-    # await ops_test.model.deploy(RESOURCE_DISPATCHER_CHARM_NAME, channel="latest/edge", trust=True)
-
-    await ops_test.model.relate(
-        f"{CHARM_NAME}:pod-defaults", f"{RESOURCE_DISPATCHER_CHARM_NAME}:pod-defaults"
+    # TODO: remove once https://github.com/canonical/resource-dispatcher/pull/42 is merged
+    subprocess.Popen(
+        [
+            "juju",
+            "deploy",
+            f"{RESOURCE_DISPATCHER_CHARM_NAME}",
+            "--channel",
+            "latest/edge/pr-42",
+            "--trust",
+            "--base",
+            "ubuntu@20.04",
+            "--model",
+            f"{ops_test.model.name}",
+        ]
     )
 
     await ops_test.model.wait_for_idle(
@@ -128,11 +138,24 @@ async def test_build_and_deploy(ops_test: OpsTest):
         idle_period=60,
     )
 
+    await ops_test.model.relate(
+        f"{CHARM_NAME}:pod-defaults", f"{RESOURCE_DISPATCHER_CHARM_NAME}:pod-defaults"
+    )
+
+    await ops_test.model.wait_for_idle(
+        apps=[CHARM_NAME, RESOURCE_DISPATCHER_CHARM_NAME],
+        status="active",
+        raise_on_blocked=False,
+        raise_on_error=False,
+        timeout=300,
+    )
+
 
 @pytest.mark.abort_on_fail
 async def test_new_user_namespace_has_poddefault(
     ops_test: OpsTest, lightkube_client: lightkube.Client, namespace: str
 ):
+    """Test that the Kubeflow user namespace has the PodDefault object."""
     time.sleep(30)  # sync can take up to 10 seconds for reconciliation loop to trigger
 
     pod_default = lightkube_client.get(PodDefault, PODDEFAULT_NAME, namespace=namespace)

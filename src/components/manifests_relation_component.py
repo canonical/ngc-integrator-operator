@@ -11,7 +11,7 @@ from charms.kubernetes_manifests.v0.kubernetes_manifests import (
 from ops import ActiveStatus, BlockedStatus, CharmBase, StatusBase
 
 
-class KubernetesManifestRelationBroadcasterComponent(Component):
+class KubernetesManifestRelationComponent(Component):
     """
     A Component that wraps the requirer side of the resource_dispatcher charm library.
     """
@@ -51,9 +51,7 @@ class KubernetesManifestRelationBroadcasterComponent(Component):
 
         Will return:
             * BlockedStatus: if a file path is not found or if a manifest is an invalid yaml
-            * ActiveStatus: if:
-                * nothing is related to us (as there is no work to do)
-                * we have one or more relations, and we have sent data to all of them
+            * ActiveStatus: if the manifests paths exist and are valid YAMLs
         """
         try:
             # If we successfully get the manifests items, we are active

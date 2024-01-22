@@ -9,7 +9,7 @@ import logging
 import ops
 from charmed_kubeflow_chisme.components import CharmReconciler, LeadershipGateComponent
 
-from components.manifests_relation_component import KubernetesManifestRelationBroadcasterComponent
+from components.manifests_relation_component import KubernetesManifestRelationComponent
 
 logger = logging.getLogger(__name__)
 
@@ -35,9 +35,9 @@ class NgcIntegratorCharm(ops.CharmBase):
         )
 
         self.manifests_broadcaster = self.charm_reconciler.add(
-            component=KubernetesManifestRelationBroadcasterComponent(
+            component=KubernetesManifestRelationComponent(
                 charm=self,
-                name="manifests-relation-broadcaster",
+                name="manifests-relation",
                 relation_name=PODDEFAULTS_RELATION,
                 manifests_paths=[PODDEFAULT_FILE],
             ),

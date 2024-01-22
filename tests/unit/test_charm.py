@@ -4,10 +4,11 @@
 import json
 from pathlib import Path
 from typing import List
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 import yaml
+from charmed_kubeflow_chisme.exceptions import ErrorWithStatus
 from ops.model import ActiveStatus
 from ops.testing import Harness
 
@@ -48,6 +49,43 @@ def test_kubernetes_manifest_relation_data(harness):
 
     assert actual_manifests == [yaml.safe_load(Path(PODDEFAULT_FILE).read_text())]
     assert isinstance(harness.charm.model.unit.status, ActiveStatus)
+
+
+@patch("charm.PODDEFAULT_FILE", "non_existent_file.yaml")
+def test_incorrect_manifest_path_error_status(harness):
+    """
+    Test when the manifest file is not found, the charm goes to error
+    with the correct error message.
+    """
+    # Arrange
+    harness.set_leader(True)
+
+    with pytest.raises(ErrorWithStatus) as e:
+        # Act
+        harness.begin_with_initial_hooks()
+
+        # Mock:
+        # * leadership_gate to be active and executed
+        harness.charm.leadership_gate.get_status = MagicMock(return_value=ActiveStatus())
+
+    # Assert
+    assert "No such file or directory" in str(e.value)
+
+
+@patch("charm.PODDEFAULT_FILE", "./tests/unit/invalid.yaml")
+def test_invalid_yaml_error_status(harness):
+    """Test when the manifest file is not a valid yaml, the charm goes to error."""
+    # Arrange
+    harness.set_leader(True)
+
+    # Assert
+    with pytest.raises(ErrorWithStatus):
+        # Act
+        harness.begin_with_initial_hooks()
+
+        # Mock:
+        # * leadership_gate to be active and executed
+        harness.charm.leadership_gate.get_status = MagicMock(return_value=ActiveStatus())
 
 
 def get_manifests_from_relation(harness, relation_id, this_app) -> List[dict]:
