@@ -79,13 +79,15 @@ def test_invalid_yaml_error_status(harness):
     harness.set_leader(True)
 
     # Assert
-    with pytest.raises(ErrorWithStatus):
+    with pytest.raises(ErrorWithStatus) as e:
         # Act
         harness.begin_with_initial_hooks()
 
         # Mock:
         # * leadership_gate to be active and executed
         harness.charm.leadership_gate.get_status = MagicMock(return_value=ActiveStatus())
+
+    assert "No such file or directory" not in str(e.value)
 
 
 def get_manifests_from_relation(harness, relation_id, this_app) -> List[dict]:
