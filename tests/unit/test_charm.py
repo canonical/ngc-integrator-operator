@@ -13,7 +13,7 @@ from ops.model import ActiveStatus
 from ops.testing import Harness
 
 from charm import PODDEFAULT_FILE, PODDEFAULTS_RELATION, NgcIntegratorCharm
-from lib.charms.kubernetes_manifests.v0.kubernetes_manifests import KUBERNETES_MANIFESTS_FIELD
+from lib.charms.resource_dispatcher.v0.kubernetes_manifests import KUBERNETES_MANIFESTS_FIELD
 
 
 @pytest.fixture

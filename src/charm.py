@@ -2,8 +2,6 @@
 # Copyright 2024 Ubuntu
 # See LICENSE file for licensing details.
 
-"""Charm the application."""
-
 import logging
 
 import ops
@@ -18,7 +16,7 @@ PODDEFAULTS_RELATION = "pod-defaults"
 
 
 class NgcIntegratorCharm(ops.CharmBase):
-    """A Juju charm for NGC Containers integration with Kubeflow."""
+    """A Juju charm for NGC Containers integration with Charmed Kubeflow Notebooks."""
 
     def __init__(self, *args):
         super().__init__(*args)

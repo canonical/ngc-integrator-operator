@@ -1,7 +1,7 @@
 # NGC Integraor Operator
 ## Description
 
-The NGC Integrator Operator for Juju enables the integration of Nvidia NGC containers with Charmed Kubeflow.
+The NGC Integrator Operator for Juju enables the integration of Nvidia NGC containers with Charmed Kubeflow Notebooks.
 
 ## Usage
 

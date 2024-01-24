@@ -3,7 +3,7 @@
 
 name: ngc-integrator
 description: |
-  charm for configuring Charmed Kubeflow components to work with Nvidia NGC containers.
+  charm for configuring Charmed Kubeflow Notebooks to work with Nvidia NGC containers.
 summary: |
   NGC integrator charm.
 provides:

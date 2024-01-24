@@ -3,7 +3,6 @@
 # See LICENSE file for licensing details.
 
 import logging
-import subprocess
 import time
 from pathlib import Path
 
@@ -123,27 +122,10 @@ async def test_build_and_deploy(ops_test: OpsTest):
         timeout=120,
     )
 
-    # TODO: uncomment once https://github.com/canonical/resource-dispatcher/pull/42 is merged
-    #     await ops_test.model.deploy(
-    #     entity_url=RESOURCE_DISPATCHER_CHARM_NAME,
-    #     channel="latest/edge",
-    #     trust=True,
-    # )
-
-    # TODO: remove once https://github.com/canonical/resource-dispatcher/pull/42 is merged
-    subprocess.Popen(
-        [
-            "juju",
-            "deploy",
-            f"{RESOURCE_DISPATCHER_CHARM_NAME}",
-            "--channel",
-            "latest/edge/pr-42",
-            "--trust",
-            "--base",
-            "ubuntu@20.04",
-            "--model",
-            f"{ops_test.model.name}",
-        ]
+    await ops_test.model.deploy(
+        entity_url=RESOURCE_DISPATCHER_CHARM_NAME,
+        channel="latest/edge",
+        trust=True,
     )
 
     await ops_test.model.wait_for_idle(

@@ -34,6 +34,9 @@ charmcraft pack
 ## Upgrading
 This charm follows the Charmed Kubeflow versioning with the channel ckf-1.x/<risk> for Kubeflow 1.x versions.
 On upgrades, the PodDefault yaml in `/src/templatest/poddefault.yaml` should be upgraded if needed to work with the corresponding Kubeflow Notebooks version.
-The entrypoint in the PodDefault, composed of the `command` and `args` values, is a jupyter lab command. A version of Kubeflow Notebook
-images contains a pinned version of jupyter, so the command might change with a change in the jupyter version.
+The entrypoint in the PodDefault, composed of the `command` and `args` values, is a `jupyter lab` command. The `args` values consist of flags that are only compatible with the version of `jupyter lab` that gets installed by the NGC container image that we support, any change on that version could mean a change in those flags.
+Check the flags for the `jupyter lab` version in the version of the NGC container image that we are upgrading to by doing:
+```
+docker run -it <NGC image:targeted version> bash -c "jupyter lab --help-all"
+```
 <!-- You may want to include any contribution/style guidelines in this document>

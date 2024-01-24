@@ -4,7 +4,7 @@ from typing import List
 import yaml
 from charmed_kubeflow_chisme.components.component import Component
 from charmed_kubeflow_chisme.exceptions import ErrorWithStatus
-from charms.kubernetes_manifests.v0.kubernetes_manifests import (
+from charms.resource_dispatcher.v0.kubernetes_manifests import (
     KubernetesManifest,
     KubernetesManifestsRequirer,
 )

@@ -65,7 +65,7 @@ jobs:
         provider: microk8s
         channel: 1.25-strict/stable
         juju-channel: 3.1/stable
-        microk8s-addons: "dns storage rbac metallb:10.64.140.43-10.64.140.49"
+        microk8s-addons: "dns hostpath-storage rbac"
 
     - name: Run integration tests
       run: tox -vve integration -- --model testing
@@ -86,8 +86,3 @@ jobs:
     - name: Get operator logs
       run: kubectl logs --tail 100 -ntesting -loperator.juju.is/name=ngc-integrator
       if: failure()
-    
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-      if: failure()
-      timeout-minutes: 40
