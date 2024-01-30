@@ -8,7 +8,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import yaml
-from charmed_kubeflow_chisme.exceptions import ErrorWithStatus
 from ops.model import ActiveStatus
 from ops.testing import Harness
 
@@ -60,16 +59,10 @@ def test_incorrect_manifest_path_error_status(harness):
     # Arrange
     harness.set_leader(True)
 
-    with pytest.raises(ErrorWithStatus) as e:
+    # Assert
+    with pytest.raises(FileNotFoundError):
         # Act
         harness.begin_with_initial_hooks()
-
-        # Mock:
-        # * leadership_gate to be active and executed
-        harness.charm.leadership_gate.get_status = MagicMock(return_value=ActiveStatus())
-
-    # Assert
-    assert "No such file or directory" in str(e.value)
 
 
 @patch("charm.PODDEFAULT_FILE", "./tests/unit/invalid.yaml")
@@ -79,15 +72,9 @@ def test_invalid_yaml_error_status(harness):
     harness.set_leader(True)
 
     # Assert
-    with pytest.raises(ErrorWithStatus) as e:
+    with pytest.raises(yaml.parser.ParserError):
         # Act
         harness.begin_with_initial_hooks()
-
-        # Mock:
-        # * leadership_gate to be active and executed
-        harness.charm.leadership_gate.get_status = MagicMock(return_value=ActiveStatus())
-
-    assert "No such file or directory" not in str(e.value)
 
 
 def get_manifests_from_relation(harness, relation_id, this_app) -> List[dict]:

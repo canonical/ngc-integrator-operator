@@ -3,96 +3,62 @@
 # See LICENSE file for licensing details.
 
 import logging
-import time
+from contextlib import nullcontext as does_not_raise
 from pathlib import Path
 
-import lightkube
 import pytest
+import tenacity
 import yaml
-from charmed_kubeflow_chisme.kubernetes import KubernetesResourceHandler
-from lightkube import codecs
-from lightkube.generic_resource import (
-    create_namespaced_resource,
-    load_in_cluster_generic_resources,
+from charmed_kubeflow_chisme.kubernetes import (
+    KubernetesResourceHandler,
+    create_charm_default_labels,
 )
+from lightkube.generic_resource import create_namespaced_resource
+from lightkube.resources.core_v1 import Namespace
 from pytest_operator.plugin import OpsTest
 
 logger = logging.getLogger(__name__)
 
+ADMISSION_WEBHOOK_CHARM_NAME = "admission-webhook"
 METADATA = yaml.safe_load(Path("./metadata.yaml").read_text())
 CHARM_NAME = METADATA["name"]
 RESOURCE_DISPATCHER_CHARM_NAME = "resource-dispatcher"
 METACONTROLLER_CHARM_NAME = "metacontroller-operator"
-TESTING_LABELS = ["user.kubeflow.org/enabled"]
-PODDEFAULTS_CRD_TEMPLATE = "./tests/integration/crds/poddefaults.yaml"
 PODDEFAULT_FILE = yaml.safe_load(Path("./src/templates/poddefault.yaml").read_text())
 PODDEFAULT_NAME = PODDEFAULT_FILE["metadata"]["name"]
 NAMESPACE_FILE = "./tests/integration/namespace.yaml"
-
+NAMESPACE_NAME = yaml.safe_load(Path(NAMESPACE_FILE).read_text())["metadata"]["name"]
 
 PodDefault = create_namespaced_resource("kubeflow.org", "v1alpha1", "PodDefault", "poddefaults")
 
 
-def _safe_load_file_to_text(filename: str) -> str:
-    """Returns the contents of filename if it is an existing file, else it returns filename."""
-    try:
-        text = Path(filename).read_text()
-    except FileNotFoundError:
-        text = filename
-    return text
-
-
-def delete_all_from_yaml(yaml_text: str, lightkube_client: lightkube.Client = None):
-    """Deletes all k8s resources listed in a YAML file via lightkube.
-
-    Args:
-        yaml_file (str or Path): Either a string filename or a string of valid YAML.  Will attempt
-                                 to open a filename at this path, failing back to interpreting the
-                                 string directly as YAML.
-        lightkube_client: Instantiated lightkube client or None
-    """
-
-    if lightkube_client is None:
-        lightkube_client = lightkube.Client()
-
-    for obj in codecs.load_all_yaml(yaml_text):
-        lightkube_client.delete(type(obj), obj.metadata.name)
-
-
-@pytest.fixture(scope="session")
-def lightkube_client() -> lightkube.Client:
-    client = lightkube.Client(field_manager=CHARM_NAME)
-    return client
-
-
-def deploy_k8s_resources(template_files: str):
-    lightkube_client = lightkube.Client(field_manager=CHARM_NAME)
+@pytest.fixture(scope="module")
+def k8s_resource_handler(ops_test: OpsTest) -> KubernetesResourceHandler:
     k8s_resource_handler = KubernetesResourceHandler(
-        field_manager=CHARM_NAME, template_files=template_files, context={}
+        field_manager=CHARM_NAME,
+        template_files=[NAMESPACE_FILE],
+        labels=create_charm_default_labels(
+            application_name=CHARM_NAME,
+            model_name=ops_test.model.name,
+            scope="namespace",
+        ),
+        resource_types={Namespace},
+        context={},
     )
-    load_in_cluster_generic_resources(lightkube_client)
+    return k8s_resource_handler
+
+
+@pytest.fixture(scope="module")
+def namespace(k8s_resource_handler: KubernetesResourceHandler):
     k8s_resource_handler.apply()
+    yield NAMESPACE_NAME
 
-
-@pytest.fixture(scope="session")
-def namespace(lightkube_client: lightkube.Client):
-    yaml_text = _safe_load_file_to_text(NAMESPACE_FILE)
-    yaml_rendered = yaml.safe_load(yaml_text)
-    for label in TESTING_LABELS:
-        yaml_rendered["metadata"]["labels"][label] = "true"
-    obj = codecs.from_dict(yaml_rendered)
-    lightkube_client.apply(obj)
-
-    yield obj.metadata.name
-
-    delete_all_from_yaml(yaml_text, lightkube_client)
+    k8s_resource_handler.delete()
 
 
 @pytest.mark.abort_on_fail
 async def test_build_and_deploy(ops_test: OpsTest):
     """Build the ngc-integrator charm and deploy it together with related charms."""
-
-    deploy_k8s_resources([PODDEFAULTS_CRD_TEMPLATE])
 
     # Build and deploy charm from local source folder
     built_charm_path = await ops_test.build_charm(".")
@@ -109,6 +75,21 @@ async def test_build_and_deploy(ops_test: OpsTest):
     )
 
     # Deploy resource-dispatcher charm and related charms
+
+    # Deploy admission webhook to get the poddefaults CRD
+    await ops_test.model.deploy(
+        entity_url=ADMISSION_WEBHOOK_CHARM_NAME,
+        channel="latest/edge",
+        trust=True,
+    )
+    await ops_test.model.wait_for_idle(
+        apps=[ADMISSION_WEBHOOK_CHARM_NAME],
+        status="active",
+        raise_on_blocked=False,
+        raise_on_error=True,
+        timeout=120,
+    )
+
     await ops_test.model.deploy(
         entity_url=METACONTROLLER_CHARM_NAME,
         channel="latest/edge",
@@ -118,7 +99,7 @@ async def test_build_and_deploy(ops_test: OpsTest):
         apps=[METACONTROLLER_CHARM_NAME],
         status="active",
         raise_on_blocked=False,
-        raise_on_error=False,
+        raise_on_error=True,
         timeout=120,
     )
 
@@ -132,7 +113,7 @@ async def test_build_and_deploy(ops_test: OpsTest):
         apps=[RESOURCE_DISPATCHER_CHARM_NAME],
         status="active",
         raise_on_blocked=False,
-        raise_on_error=False,
+        raise_on_error=True,
         timeout=1200,
         idle_period=60,
     )
@@ -145,17 +126,28 @@ async def test_build_and_deploy(ops_test: OpsTest):
         apps=[CHARM_NAME, RESOURCE_DISPATCHER_CHARM_NAME],
         status="active",
         raise_on_blocked=False,
-        raise_on_error=False,
+        raise_on_error=True,
         timeout=300,
     )
 
 
+@tenacity.retry(
+    wait=tenacity.wait_exponential(multiplier=1, min=1, max=15),
+    stop=tenacity.stop_after_delay(30),
+    reraise=True,
+)
 @pytest.mark.abort_on_fail
 async def test_new_user_namespace_has_poddefault(
-    ops_test: OpsTest, lightkube_client: lightkube.Client, namespace: str
+    ops_test: OpsTest, k8s_resource_handler: KubernetesResourceHandler, namespace: str
 ):
-    """Test that the Kubeflow user namespace has the PodDefault object."""
-    time.sleep(30)  # sync can take up to 10 seconds for reconciliation loop to trigger
+    """Test that the Kubeflow user namespace has the PodDefault with the expected attributes."""
+    with does_not_raise():
+        pod_default = k8s_resource_handler.lightkube_client.get(
+            PodDefault, PODDEFAULT_NAME, namespace=namespace
+        )
 
-    pod_default = lightkube_client.get(PodDefault, PODDEFAULT_NAME, namespace=namespace)
-    assert pod_default is not None
+    name = pod_default.get("metadata", {}).get("name", {})
+    assert name == PODDEFAULT_FILE["metadata"]["name"]
+
+    selector_label = pod_default.get("spec", {}).get("selector", {}).get("matchLabels")
+    assert selector_label == PODDEFAULT_FILE["spec"]["selector"]["matchLabels"]
