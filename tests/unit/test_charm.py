@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import yaml
-from ops.model import ActiveStatus
+from ops.model import ActiveStatus, ErrorStatus
 from ops.testing import Harness
 
 from charm import PODDEFAULT_FILE, PODDEFAULTS_RELATION, NgcIntegratorCharm
@@ -63,6 +63,7 @@ def test_incorrect_manifest_path_error_status(harness):
     with pytest.raises(FileNotFoundError):
         # Act
         harness.begin_with_initial_hooks()
+        assert isinstance(harness.charm.model.unit.status, ErrorStatus)
 
 
 @patch("charm.PODDEFAULT_FILE", "./tests/unit/invalid.yaml")
@@ -75,6 +76,7 @@ def test_invalid_yaml_error_status(harness):
     with pytest.raises(yaml.parser.ParserError):
         # Act
         harness.begin_with_initial_hooks()
+        assert isinstance(harness.charm.model.unit.status, ErrorStatus)
 
 
 def get_manifests_from_relation(harness, relation_id, this_app) -> List[dict]:
