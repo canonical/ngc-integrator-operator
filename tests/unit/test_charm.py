@@ -53,8 +53,9 @@ def test_kubernetes_manifest_relation_data(harness):
 @patch("charm.PODDEFAULT_FILE", "non_existent_file.yaml")
 def test_incorrect_manifest_path_error_status(harness):
     """
-    Test when the manifest file is not found, the charm goes to error
-    with the correct error message.
+    Test when the manifest file is not found:
+    1. a FileNotFoundError is raised
+    2. the charm goes to ErrorStatus
     """
     # Arrange
     harness.set_leader(True)
@@ -68,7 +69,10 @@ def test_incorrect_manifest_path_error_status(harness):
 
 @patch("charm.PODDEFAULT_FILE", "./tests/unit/invalid.yaml")
 def test_invalid_yaml_error_status(harness):
-    """Test when the manifest file is not a valid yaml, the charm goes to error."""
+    """Test when the manifest file is not a valid yaml:
+    1. a yaml ParserError is raised.
+    2. the charm goes to ErrorStatus
+    """
     # Arrange
     harness.set_leader(True)
 
