@@ -1,0 +1,11 @@
+# Copyright 2024 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+name: ngc-integrator
+description: |
+  charm for configuring Charmed Kubeflow Notebooks to work with Nvidia NGC containers.
+summary: |
+  NGC integrator charm.
+requires:
+  pod-defaults:
+    interface: kubernetes_manifest
