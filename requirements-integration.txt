@@ -30,7 +30,7 @@ charmed-kubeflow-chisme==0.2.1
     # via -r requirements-integration.in
 charset-normalizer==3.3.2
     # via requests
-cryptography==41.0.7
+cryptography==42.0.2
     # via paramiko
 decorator==5.1.1
     # via
