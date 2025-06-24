@@ -11,10 +11,10 @@ jobs:
 
   lib-check:
     name: Check libraries
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Check libs
@@ -25,39 +25,49 @@ jobs:
 
   lint:
     name: Lint Check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
     - name: Check out code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5.6.0
+      with:
+        python-version: "3.12"
+      
     - name: Install dependencies
-      run: sudo apt-get install python3-pip tox
+      run: pip install tox
 
     - name: Lint code
       run: tox -e lint
 
   unit:
     name: Unit Test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
     - name: Check out code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5.6.0
+      with:
+        python-version: "3.12"
 
     - name: Install dependencies
-      run: sudo apt-get install python3-pip tox
+      run: pip install tox
 
     - name: Run unit tests
       run: tox -e unit
 
   integration:
     name: Integration Test (build and deploy)
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
     - name: Check out repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Setup operator environment
       uses: charmed-kubernetes/actions-operator@main

@@ -1,4 +1,4 @@
-# NGC Integraor Operator
+# NGC Integrator Operator
 ## Description
 
 The NGC Integrator Operator for Juju enables the integration of Nvidia NGC containers with Charmed Kubeflow Notebooks.
@@ -6,7 +6,7 @@ The NGC Integrator Operator for Juju enables the integration of Nvidia NGC conta
 ## Usage
 
 The NGC Integrator Operator may be deployed using the Juju command line as
-follows
+follows:
 
 ```sh
 $ juju deploy ngc-integrator --trust
@@ -36,17 +36,6 @@ Learn more about deploying and using Charmed Kubeflow at [https://charmed-kubefl
 * Composable: **edge deployment configurations available**
 
 
-### What’s included in Charmed Kubeflow 1.4
-* LDAP Authentication
-* Jupyter Notebooks
-* Work with Python and R
-* Support for TensorFlow, Pytorch, MXNet, XGBoost
-* TFServing, Seldon-Core
-* Katib (autoML)
-* Apache Spark
-* Argo Workflows
-* Kubeflow Pipelines
-
 ### Why engineers and data scientists choose Charmed Kubeflow
 * Maintenance: Charmed Kubeflow offers up to two years of maintenance on select releases
 * Optional 24/7 support available, [contact us here](https://charmed-kubeflow.io/contact-us) for more information
@@ -57,9 +46,7 @@ Learn more about deploying and using Charmed Kubeflow at [https://charmed-kubefl
 Please see the [official docs site](https://charmed-kubeflow.io/docs) for complete documentation of the Charmed Kubeflow distribution.
 
 ### Bugs and feature requests
-If you find a bug in our operator or want to request a specific feature, please file a bug here: 
-[https://github.com/canonical/seldon-core-operator/issues](https://github.com/canonical/seldon-core-operator/issues)
-
+If you find a bug in our operator or want to request a specific feature, [please file a bug here](https://github.com/canonical/ngc-integrator-operator/issues/new).
 
 ### License
 Charmed Kubeflow is free software, distributed under the [Apache Software License, version 2.0](https://github.com/canonical/seldon-core-operator/blob/master/LICENSE).
